@@ -32,25 +32,61 @@ module "secure_bucket" {
 
 }
 
-module "k8s_cluster_firewall_rule" {
-  source     = "./k8s_firewall_rule"
+module "consul_server_firewall_rule" {
+  source     = "./firewall/consol_server"
   depends_on = [module.app_network]
 
+  project_id = var.project_id
+
+  gcp_zone = var.gcp_zone
+
+  network_name                         = module.app_network.network_name
+  network_subnet_private_address_range = var.nw_subnet_private_address_range
+  network_subnet_public_address_range  = var.nw_subnet_public_address_range
+}
+
+module "consul_server" {
+  source     = "./consul_server"
+  depends_on = [module.secure_bucket, module.consul_server_firewall_rule]
+
   project_id   = var.project_id
+  project_name = var.project_name
 
   gcp_zone   = var.gcp_zone
+  gcp_region = var.gcp_region
+
+  network_name                         = module.app_network.network_name
+  network_subnet_private_address_range = var.nw_subnet_private_address_range
+  network_subnet_private_name          = module.app_network.network_subnet_private_name
+
+  secure_bucket_name = module.secure_bucket.bucket_name
+
+  vm_instance_type = var.consule_server_vm_instance_type
+  vm_os_image      = var.consule_server_vm_os_image
+  vm_os_disk_size  = var.consule_server_vm_os_disk_size
+  vm_os_disk_type  = var.consule_server_vm_os_disk_type
+  vm_count         = var.consule_server_vm_count
+}
+
+module "k8s_cluster_firewall_rule" {
+  source     = "./firewall/k8s"
+  depends_on = [module.app_network]
+
+  project_id = var.project_id
+
+  gcp_zone = var.gcp_zone
 
   network_name                         = module.app_network.network_name
   network_subnet_public_address_range  = var.nw_subnet_public_address_range
   network_subnet_private_address_range = var.nw_subnet_private_address_range
 
   node_connect_port = var.k8s_node_connect_port
-
+  gcp_helath_check_ip_ranges = var.gcp_helath_check_ip_ranges
 }
 
 module "k8s_cluster" {
   source     = "./k8s"
-  depends_on = [module.k8s_cluster_firewall_rule]
+  depends_on = [module.secure_bucket, module.k8s_cluster_firewall_rule]
 
   project_id   = var.project_id
   project_name = var.project_name
@@ -75,14 +111,39 @@ module "k8s_cluster" {
   node_os_disk_type  = var.k8s_node_os_disk_type
   node_count         = var.k8s_node_count
 
+  k8s_node_connect_port = var.k8s_node_connect_port
+
+
+  scale_cpu_utilization                  = var.k8s_node_scale_cpu_utilization
+  scale_max_replicas                     = var.k8s_node_scale_max_replicas
+  scale_cooldown_period                  = var.k8s_node_scale_cooldown_period
+  scale_min_replicas                     = var.k8s_node_scale_min_replicas
+  health_check_interval_sec              = var.k8s_node_health_check_interval_sec
+  health_timeout_sec                     = var.k8s_node_health_timeout_sec
+  health_healthy_threshold               = var.k8s_node_health_healthy_threshold
+  health_unhealthy_threshold             = var.k8s_node_health_unhealthy_threshold
+  mig_healing_policies_initial_delay_sec = var.k8s_node_mig_healing_policies_initial_delay_sec
+  mig_target_size                        = var.k8s_node_mig_target_size
+
 }
 
+module "haproxy_lb_firewall_rule" {
+  source     = "./firewall/haproxy_lb"
+  depends_on = [module.app_network]
 
+  project_id = var.project_id
 
+  gcp_zone = var.gcp_zone
+
+  network_name                         = module.app_network.network_name
+  network_subnet_private_address_range = var.nw_subnet_private_address_range
+
+  frontend_connect_port = var.lb_frontend_connect_port
+}
 
 module "haproxy_lb" {
   source = "./haproxy_lb"
-  depends_on = [ module.k8s_cluster ]
+  depends_on = [ module.haproxy_lb_firewall_rule ]
 
   project_id   = var.project_id
   project_name = var.project_name
@@ -94,14 +155,14 @@ module "haproxy_lb" {
   network_subnet_public_address_range = var.nw_subnet_public_address_range
   network_subnet_public_name = module.app_network.network_subnet_public_name
 
+  secure_bucket_name = module.secure_bucket.bucket_name
+
   vm_instance_type = var.lb_vm_instance_type
   vm_os_image= var.lb_vm_os_image
   vm_os_disk_size= var.lb_vm_os_disk_size
   vm_os_disk_type= var.lb_vm_os_disk_type
   vm_count= var.lb_vm_count
 
-  backend_k8s_worker_ips = module.k8s_cluster.worker_node_ips
-  backend_k8s_worker_port = var.k8s_node_connect_port
   backend_connect_protocol = var.lb_backend_connect_protocol
 
   frontend_connect_protocol = var.lb_frontend_connect_protocol

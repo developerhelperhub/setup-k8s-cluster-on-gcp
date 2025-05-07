@@ -26,37 +26,37 @@ variable "network_name" {
   type        = string
 }
 
-variable "network_subnet_public_address_range" {
-  description = "Subnet public address ranges to assosiate for vms"
+variable "network_subnet_private_address_range" {
+  description = "Subnet private address ranges to assosiate for vms"
   type        = string
 }
 
-variable "network_subnet_public_name" {
+variable "network_subnet_private_name" {
   description = "Subnet public name"
   type        = string
 }
 
 
-# --------------------- HAProxy Instance Configuration ---------------------
+# --------------------- Consul server Instance Configuration ---------------------
 # vm configuration
 variable "vm_instance_type" {
-  description = "Instance type of haproxy lb to install to"
+  description = "Instance type of consul server lb to install to"
   type        = string
 }
 
 variable "vm_os_image" {
-  description = "OS image of haproxy lb to install into VM"
+  description = "OS image of consul server to install into VM"
   type        = string
 }
 
 
 variable "vm_os_disk_size" {
-  description = "OS disk size of haproxy lb VM"
+  description = "OS disk size of consul server VM"
   type        = string
 }
 
 variable "vm_os_disk_type" {
-  description = "OS disk type of haproxy lb VM"
+  description = "OS disk type of consul server VM"
   type        = string
 }
 
@@ -65,22 +65,6 @@ variable "vm_count" {
   type        = number
   default = 1
 }
-
-variable "backend_connect_protocol" {
-  description = "Backend connect protocol for loadbalancer"
-  type        = string
-}
-
-variable "frontend_connect_protocol" {
-  description = "Client connect protocol for loadbalancer"
-  type        = string
-}
-
-variable "frontend_connect_port" {
-  description = "Client connect port into loadbalancer"
-  type        = number
-}
-
 
 variable "secure_bucket_name" {
   description = "The bucket name where store the information securly"
