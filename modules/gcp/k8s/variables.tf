@@ -86,5 +86,72 @@ variable "node_os_disk_type" {
 variable "node_count" {
   description = "Number of node count needs to create in the cluster"
   type        = number
-  default = 1
+  default     = 1
+}
+
+
+variable "k8s_node_connect_port" {
+  description = "Port number of worker node to connect from loadbalancer"
+  type        = number
+}
+
+variable "scale_cpu_utilization" {
+  description = "Average CPU utilization of worker node for scale"
+  type        = number
+  default     = 0.6
+}
+
+variable "scale_max_replicas" {
+  description = "Maximum relicas of worker nodes for scale"
+  type        = number
+  default     = 2
+}
+
+variable "scale_cooldown_period" {
+  description = "Cooldown period of worker nodes for scale"
+  type        = number
+  default     = 60
+}
+
+
+variable "scale_min_replicas" {
+  description = "Minimum relicas of worker nodes for scale"
+  type        = number
+  default     = 2
+}
+
+variable "health_check_interval_sec" {
+  description = "Interval second of health check"
+  type        = number
+  default     = 2
+}
+
+variable "health_timeout_sec" {
+  description = "Timemout second of health check"
+  type        = number
+  default     = 2
+}
+
+variable "health_healthy_threshold" {
+  description = "Healthy threshold of health check"
+  type        = number
+  default     = 2
+}
+
+variable "health_unhealthy_threshold" {
+  description = "Unhealthy threshold of health check"
+  type        = number
+  default     = 2
+}
+
+variable "mig_healing_policies_initial_delay_sec" {
+  description = "Healing policies initial delay in seconds of Machine instance group"
+  type        = number
+  default     = 60
+}
+
+variable "mig_target_size" {
+  description = "Target sizeof Machine instance group"
+  type        = number
+  default     = 1
 }

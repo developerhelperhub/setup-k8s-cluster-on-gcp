@@ -8,6 +8,11 @@ variable "project_id" {
   type        = string
 }
 
+variable "gcp_helath_check_ip_ranges" {
+  description = "GCP health check ip ranges for configuring firewall rule"
+  type        = list
+}
+
 # #--------------------- Network Configuration ---------------------
 variable "network_name" {
   description = "Network name of application"

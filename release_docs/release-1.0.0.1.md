@@ -18,43 +18,13 @@ When Kubernetes may not be the right choice:
 In this setup, I considered the following points while building Kubernetes (K8s) on GCP:
 - Terraform: Used to easily deploy, manage, and destroy the cluster infrastructure.
 - HAProxy: Implemented an open-source load balancer instead of relying on GCP’s native load balancer. HAProxy provides high-performance load balancing.
-- Consul: Implemented VM discovery to automatically register Kubernetes worker nodes with the HAProxy load balancer.
-- GCP Auto Scaling and VM Health Checks: Set up an autoscaling group with TCP-based health checks to ensure the availability and reliability of virtual machines.
 - GCP RBAC: Leveraged GCP’s Role-Based Access Control to simplify node joining, manage Kubernetes-related files in GCP Buckets, and associate service accounts with bucket roles and virtual machines.
 - Minimal Permissions: As a best practice, configured minimal necessary roles for infrastructure components to enhance security.
-- Firewall Rules: Configured the following rules: 
-  - HAProxy 
-    - Ingress rule
-      - Port: 80
-      - Public access of HAPRoxy endpoint
-  - HAProxy → Kubernetes Worker Nodes (port 30080).
-  - Consul rule 
-    - Ingress and Egress
-      - For all agents based on VM tag (HAProxy, K8s Worker Nodes)
-      - Port: 8301, 8600, 8300 for Ingress and Egress rule
-      - Private and public network
-  - K8s Rule
-    - For master node and all worker nodes based on VM tag 
-      - Ingress 
-        - Port: 10250, 30000-32767, 10255, 6443
-        - Private network only
-      - Egress
-        - Port: 443, 6443
-        - Private network only
-    - For all worker nodes connecting to HProxy based on VM tag
-      - Ingress 
-        - Port: 30080
-        - Public network only
-      - Egress
-        - Port: 30080
-        - Private network only
-    - Health Check API of GCP based on k8s nodes tag
-      - Ingress 
-        - Port: 10250
-        - GCP Health check netowrk
+- Firewall Rules: Configured the following rules: Public → HAProxy (port 80) and HAProxy → Kubernetes Worker Nodes (port 30080).
 - Public and Private Subnets: Separated application workloads and network traffic by isolating resources into public and private subnets.
 
-![](https://paper-attachments.dropboxusercontent.com/s_B01A637F1BA6970A895150AACF9F97518302CD6FE74617377124E54312BFFC88_1746675239385_GCP-K8s-Setup-Worker+Node+Auto+Registry+with+HAProxy.drawio+1.png)
+
+![](https://paper-attachments.dropboxusercontent.com/s_C3777368E3F5E9076CDDC2F1D5801D57EF9DEFFD560FC22C1DA12D68E9C4A6CC_1745717412441_GCP-K8s-Setup.png)
 
 **Note:** This is not a production-ready architecture. In production environments, the default network should not be used. Instead, you should create your own VPCs, such as separate networks for Management, Development, and Production environments (for eg: following HIPAA-compliant recommended network architecture practices).
 
@@ -91,7 +61,7 @@ export set TF_VAR_gcp_project_id={your-gcp-project-id}
 
 ### Terraform Structure
 Following the terraform module maintain to deploy the resources in the GCP account
-![](https://paper-attachments.dropboxusercontent.com/s_B01A637F1BA6970A895150AACF9F97518302CD6FE74617377124E54312BFFC88_1746675257577_Screenshot+2025-05-08+at+9.02.07AM.png)
+![](https://paper-attachments.dropboxusercontent.com/s_C3777368E3F5E9076CDDC2F1D5801D57EF9DEFFD560FC22C1DA12D68E9C4A6CC_1745858467633_image.png)
 
 ### Create the Terraform workspace
 The following command is used to create a Terraform workspace. A workspace in Terraform functions similarly to managing different environments in software development, such as `dev` and `prod`. In this setup, the workspace helps differentiate resources for each environment within the same GCP project.
@@ -142,99 +112,170 @@ terraform apply -var-file="dev.tfvars"
 ```
 
 It creates the following resources in GCP project account
-**Service Account:**
-* myp-k8s-master-sa@xxxxxx.gserviceaccount.com
-* myp-k8s-worker-sa@xxxxxx.gserviceaccount.com
-* myp-consul-sa@xxxxxx.gserviceaccount.com
-* myp-lb-haproxy-sa@xxxxxx.gserviceaccount.com
-**VPC Network (default)→Subnet:**
-* myp-dev-private-subnet
-* myp-dev-public-subnet
-**VPC Network (default)→Firewall:**
-* myp-dev-consol-incoming-from-consol-server
-* myp-dev-consol-outgoing-to-consol-server
-* myp-dev-haproxy-lb-allow-http
-* myp-dev-k8s-incoming-from-haproxy-lb
-* myp-dev-k8s-wroker-incoming-from-k8s-master
-* myp-dev-k8s-wroker-egress-to-k8s-master
-* myp-dev-k8s-outgoing-to-haproxy-lb-allow
-* myp-dev-k8s-incoming-from-gcp-helath-service
-**Buckets:**
-* Bucket name: myp-dev-{uniqueid}-secure-bukcet
-  * Unique id can be configured in the dev.tfvars
-  * Folder name: /k8s/master-node
-* Permission
-  * myp-k8s-master-sa@xxxxxx.gserviceaccount.com
-  * myp-k8s-worker-sa@xxxxxx.gserviceaccount.com
-  * myp-consul-sa@xxxxxx.gserviceaccount.com
-  * myp-lb-haproxy-sa@xxxxxx.gserviceaccount.com
-**VM Instances**
-* myp-dev-consul-server
-* myp-dev-haproxy-lb-1
-* myp-dev-k8s-master-node
-* myp-dev-k8s-worker-node-mig
-* myp-dev-k8s-worker-node-bxsp	
-**Instance Templates**
-* myp-dev-k8s-worker-node-template
-**Instance Groups**
-* myp-dev-k8s-worker-node-mig
-**Health Checks**
-* myp-dev-k8s-worker-node-health-check
-  * All health of nodes should be 100% healthy
+- Service Account:
+    - k8s-master-node-sa@xxxxxx.gserviceaccount.com
+    - k8s-worker-node-sa@xxxxxx.gserviceaccount.com
+- VPC Network (default)→Subnet:
+    - myp-dev-private-subnet
+    - myp-dev-public-subnet
+- VPC Network (default)→Firewall:
+    - myp-dev-haproxy-lb-allow-http
+    - myp-dev-k8s-incoming-from-haproxy-lb
+    - myp-dev-k8s-wroker-incoming-from-k8s-master
+    - myp-dev-k8s-wroker-egress-to-k8s-master
+    - myp-dev-k8s-outgoing-to-haproxy-lb-allow
+- Buckets:
+    - Bucket name: myp-dev-{uniqueid}-secure-bukcet
+        - Unique id can be configured in the `dev.tfvars`
+    - Folder name: /k8s/master-node
+    - Permission
+        - k8s-master-node-sa@xxxxxx.gserviceaccount.com
+        - k8s-worker-node-sa@xxxxxx.gserviceaccount.com
+- VM Instances
+    - myp-dev-haproxy-lb-1
+    - myp-dev-k8s-master-node
+    - myp-dev-k8s-worker-node-1
 
+
+## Verify the services are installed in the K8s VM and HAProxy VM
+We can verify whether the services have been installed successfully. The following steps can help monitor and validate the status of the services.
+
+### SSH into Master VM in the GCP console
+Verify all initial script execute properly while start the VM
+```shell
+#For Google Cloud VM Instances:
+#When using the metadata_startup_script in a GCP VM, the startup script output is logged to:
+tail -500f /var/log/syslog
+
+cat /var/log/syslog | grep "Intalled the tools!"
+cat /var/log/syslog | grep "Container configure default configuration!"
+cat /var/log/syslog | grep "Enabiling IP forwarding"
+cat /var/log/syslog | grep "Configured the paramters of VM for K8s!"
+cat /var/log/syslog | grep "Kubernetes has initialized successfully!"
+cat /var/log/syslog | grep "Uploaded token into bucket!"
+```
+
+### SSH into Worker VM in the GCP console
+Verify all initial script execute properly while start the VM
+```shell
+tail -500f /var/log/syslog
+cat /var/log/syslog | grep "Joined the master node successfully!"
+```
+
+### SSH into HAProxy VM in the GCP console
+1. Verify all initial script execute properly while start the VM
+```shell
+    tail -500f /var/log/syslog
+    cat /var/log/syslog | grep "Restart HAPorxy!"
+    
+    ##Output:
+    startup-script: Restart HAPorxy!
+```
+2. Verify HAProxy configuration and checking internal IP configure of k8s backend service
+```shell
+cat /etc/haproxy/haproxy.cfg
+
+#Following information will be added in the configuration, Output:
+frontend http_front
+        bind *:80
+        mode http
+        default_backend haproxy_ingress_backend
+backend haproxy_ingress_backend
+    mode http
+    balance roundrobin
+    server k8s-node1 <worker-node-internip>:30080 check maxconn 32
+```
+3. Verify the tcp connection 30080 port
+```shell
+sudo apt install telnet -y
+telnet <worker-node-internip> 30080
+```
+
+### Verify the Bucket
+Check the bucket storage to verify whether the file `/k8s/master-node/join_node.sh` has been uploaded.
+This shell script is used to join worker nodes to the Kubernetes cluster. It will be downloaded and executed on each worker node during the setup process.
+
+### Verify the nodes join
+We can verify the worker nodes are joined with master node. Following step helps monitor the services
+SSH into Master VM in the GCP console
+1. Verify the nodes are joined in the K8s cluster. Execute following command 
+```shell
+#Login into ubuntu user
+sudo su ubuntu
+##Check the nodes
+kubectl get nodes
+```
+Following Output:
+```shell
+NAME                            STATUS   ROLES           AGE   VERSION
+myp-dev-k8s-master-node     Ready    control-plane   26m   v1.32.3
+myp-dev-k8s-worker-node-1   Ready    <none>          25m   v1.32.3
+```
+2. Verify the pods are installed eg: network plugin (Calico in this case)
+```shell
+##Check the pods
+kubectl get pods --all-namespaces
+
+##Following Output:
+NAMESPACE     NAME                                                  READY   STATUS    RESTARTS   AGE
+kube-system   calico-kube-controllers-7498b9bb4c-44pf8              1/1     Running   0          29m
+kube-system   calico-node-b4bnh                                     1/1     Running   0          28m
+kube-system   calico-node-bhpv8                                     1/1     Running   0          29m
+kube-system   coredns-668d6bf9bc-8tdsb                              1/1     Running   0          29m
+kube-system   coredns-668d6bf9bc-j6q4p                              1/1     Running   0          29m
+kube-system   etcd-myp-default-k8s-master-node                      1/1     Running   0          29m
+kube-system   kube-apiserver-myp-default-k8s-master-node            1/1     Running   0          29m
+kube-system   kube-controller-manager-myp-default-k8s-master-node   1/1     Running   0          29m
+kube-system   kube-proxy-4qgkc                                      1/1     Running   0          28m
+kube-system   kube-proxy-zvlsb                                      1/1     Running   0          29m
+kube-system   kube-scheduler-myp-default-k8s-master-node            1/1     Running   0          29m
+```
 
 ## Install Web Applications K8s cluster
-We deployed `nginx-web` as a sample application on the Kubernetes worker nodes and accessed it through the HAProxy load balancer.
-As HAProxy is the chosen load balancer in our architecture, we configured an HAProxy Ingress Controller during the master node setup. This controller efficiently routes incoming traffic to the appropriate applications running within the pods.
+We are deploying `nginx-web` as a sample application on the worker nodes and connecting to it through the HAProxy load balancer.
+Since we are using HAProxy as the load balancer in our architecture, we need to configure an HAProxy Ingress Controller to properly route incoming requests to the applications running inside the pods.
 
 ### Install the HAProxy ingress controller into master VM in the GCP console
-1. Login into ubuntu user and changed into home directory
+1. Install helm
 ```shell
+#Login to ubuntu user
 sudo su ubuntu
-cd
-```
-2. Ensure nodes are joined with master nodes
-```shell
-kubectl get nodes
 
-#Output
-NAME                           STATUS   ROLES           AGE     VERSION
-myp-dev-k8s-master-node        Ready    control-plane   6m50s   v1.32.4
-myp-dev-k8s-worker-node-0q3j   Ready    <none>          5m26s   v1.32.4
-myp-dev-k8s-worker-node-c3js   Ready    <none>          5m28s   v1.32.4
-```
-3. Ensure Hproxy pods running properly in all worker nodes
-```shell
-kubectl get pods -n haproxy-controller -o wide
+#Install helm
+curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+sudo apt-get install apt-transport-https --yes
+echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+# Install
+sudo apt update
+sudo apt install helm
 
-#Output
-NAME                                        READY   STATUS      RESTARTS   AGE     IP                NODE                           NOMINATED NODE   READINESS GATES
-haproxy-kubernetes-ingress-27lwj            1/1     Running     0          5m27s   192.168.100.1     myp-dev-k8s-worker-node-c3js   <none>           <none>
-haproxy-kubernetes-ingress-crdjob-1-5rwd4   0/1     Completed   0          6m25s   192.168.100.2     myp-dev-k8s-worker-node-c3js   <none>           <none>
-haproxy-kubernetes-ingress-khrxt            1/1     Running     0          4m56s   192.168.209.129   myp-dev-k8s-worker-node-0q3j   <none>           <none>
-```
+#Check the version
+helm version
 
-4. Ensure Hproxy service running properly in 30080 port
+#Output:
+version.BuildInfo{Version:"v3.17.2", GitCommit:"cc0bbbd6d6276b83880042c1ecb34087e84d41eb", GitTreeState:"clean", GoVersion:"go1.23.7"}
+```
+2. Add HAProxy repo
 ```shell
+helm repo add haproxytech https://haproxytech.github.io/helm-charts
+helm repo update
+```
+3. Install the HAProxy ingress controller and expose the http and https Node Port to connect the HAProxy Load Balancer
+```shell
+helm install haproxy-kubernetes-ingress haproxytech/kubernetes-ingress \
+    --create-namespace \
+    --namespace haproxy-controller \
+    --set controller.service.type=NodePort \
+    --set controller.service.nodePorts.http=30080 \
+    --set controller.service.nodePorts.https=30443 \
+    --set controller.service.nodePorts.stat=30002 \
+    --set controller.service.nodePorts.prometheus=30003
+
 #Verify the service
 kubectl get svc -n haproxy-controller haproxy-kubernetes-ingress
-
 #Output
-NAME                         TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)                                                   AGE
-haproxy-kubernetes-ingress   NodePort   10.97.64.228   <none>        80:30080/TCP,443:30443/TCP,443:30443/UDP,1024:30002/TCP   7m35s
+haproxy-kubernetes-ingress   NodePort   10.109.135.187   <none>        80:30080/TCP,443:30443/TCP,443:30443/UDP,1024:30002/TCP   103s
 ```
-5. Ensure Kube-proxy is Running Properly
-If HAProxy is running on the worker node, but the port is not open, it could be due to issues with kube-proxy, which manages the network routing for services in Kubernetes.
-Check if kube-proxy is running on the worker nodes:
-```shell
-kubectl get pods -n kube-system -o wide | grep kube-proxy
-
-#Output
-kube-proxy-9hqbv                                  1/1     Running   0          7m15s   10.0.1.4          myp-dev-k8s-worker-node-c3js   <none>           <none>
-kube-proxy-cnlbl                                  1/1     Running   0          8m29s   10.0.1.3          myp-dev-k8s-master-node        <none>           <none>
-kube-proxy-jrh2p                                  1/1     Running   0          7m13s   10.0.1.5          myp-dev-k8s-worker-node-0q3j   <none>           <none>
-```
-
 ### Install sample nginx server in the K8s and create ingress resource of HAProxy
 1. Install `nginx-web` server on K8s and expose `80` port
 ```shell
@@ -245,22 +286,10 @@ kubectl get  svc
 
 #Output
 NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
-kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP   9m3s
-nginx-web    ClusterIP   10.111.110.192   <none>        80/TCP    1s
+kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP   60m
+nginx-web    ClusterIP   10.110.173.152   <none>        80/TCP    16m
 ```
-2. To Actually Spread Pods Across Multiple Nodes
-```shell
-kubectl scale deployment nginx-web --replicas=2
-
-kubectl get pods -o wide -l app=nginx-web
-```
-Output:
-```shell
-NAME                         READY   STATUS    RESTARTS   AGE   IP                NODE                           NOMINATED NODE   READINESS GATES
-nginx-web-8684b95849-j59tv   1/1     Running   0          11s   192.168.209.130   myp-dev-k8s-worker-node-0q3j   <none>           <none>
-nginx-web-8684b95849-wn224   1/1     Running   0          32s   192.168.100.3     myp-dev-k8s-worker-node-c3js   <none>           <none>
-```
-3. Create the ingress resource to rout the request into `nginx-web:80` application
+2. Create the ingress resource to rout the request into `nginx-web:80` application
 ```shell
 #Install VI editor to create the resource file
 sudo apt install vim -y
@@ -271,21 +300,21 @@ vi nginx-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nginx-ingress
-  namespace: default
-  annotations:
+    name: nginx-ingress
+    namespace: default
+    annotations:
     ingress.class: "haproxy"
 spec:
-  rules:
-  - http:
-      paths:
-      - path: /
+    rules:
+    - http:
+        paths:
+        - path: /
         pathType: Prefix
         backend:
-          service:
+            service:
             name: nginx-web
             port:
-              number: 80
+                number: 80
 ```
 3. Apply the ingress resource 
 ```shell
@@ -294,8 +323,7 @@ kubectl apply -f nginx-ingress.yaml
 4. Identify the worker node Ip and test access of app through Node Port of worker node 
 ```shell
 kubectl get nodes -o wide
-curl http://<worker-node1-ip>:30080
-curl http://<worker-node2-ip>:30080
+curl http://<worker-node-ip>:30080
 ```
 
 We will see following output of Nginx server home page
@@ -316,19 +344,11 @@ Commercial support is available at
 http://<haproxy-vm-external-ip>
 ```
 
+
 ## Destroy the resources in GCP account
 Execute following commands to destroy / clean the resources which are created on GCP
 ```shell
 terraform destroy -var-file="dev.tfvars"
 ```
 
-Source Code : (setup-k8s-cluster-on-gcp)[https://github.com/developerhelperhub/setup-k8s-cluster-on-gcp]
-
-# Debug the services
-Following git repo contains the all debug documents to debug the issues 
-* (Debug Notes)[https://github.com/developerhelperhub/setup-k8s-cluster-on-gcp/debugs]
-* Verify VMS installation
-* Verify storage
-* Verify the consul
-* Verify the master node
-* Verify the HAProxy
+Git Repo : (setup-k8s-cluster-on-gcp)[https://github.com/developerhelperhub/setup-k8s-cluster-on-gcp]
