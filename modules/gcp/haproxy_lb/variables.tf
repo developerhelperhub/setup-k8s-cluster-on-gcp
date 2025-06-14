@@ -21,8 +21,8 @@ variable "gcp_zone" {
 }
 
 #--------------------- Network Configuration ---------------------
-variable "network_name" {
-  description = "Network name of application"
+variable "network_self_link" {
+  description = "self link of network of application"
   type        = string
 }
 
@@ -31,11 +31,10 @@ variable "network_subnet_public_address_range" {
   type        = string
 }
 
-variable "network_subnet_public_name" {
-  description = "Subnet public name"
+variable "network_subnet_public_self_link" {
+  description = "Self link of subnet public"
   type        = string
 }
-
 
 # --------------------- HAProxy Instance Configuration ---------------------
 # vm configuration

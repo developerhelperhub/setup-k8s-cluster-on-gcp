@@ -27,12 +27,12 @@ resource "google_compute_instance" "haproxy_lb_vm" {
 
 
   network_interface {
-    network    = var.network_name
-    subnetwork = var.network_subnet_public_name
+    network    = var.network_self_link
+    subnetwork = var.network_subnet_public_self_link
     access_config {} # for external IP
   }
 
-  tags = ["env-${lower(terraform.workspace)}", "haprox-lb", "consul-agent"]
+  tags = ["env-${lower(terraform.workspace)}", "haprox-lb", "consul-agent", "iap-ssh-target"]
 
   labels = {
     environment = "${lower(terraform.workspace)}"

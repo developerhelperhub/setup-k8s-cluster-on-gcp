@@ -26,14 +26,14 @@ resource "google_compute_instance" "k8s_master_node" {
   }
 
   network_interface {
-    network    = var.network_name
-    subnetwork = var.network_subnet_private_name
+    network    = var.network_self_link
+    subnetwork = var.network_subnet_private_self_link
     # subnetwork_project = var.project_id
     # network_ip         = var.network_address_range
-    access_config {} # for external IP
+    # access_config {} # for external IP
   }
 
-  tags = ["env-${lower(terraform.workspace)}", "k8s-cluster", "k8s-master-node"]
+  tags = ["env-${lower(terraform.workspace)}", "k8s-cluster", "k8s-master-node", "iap-ssh-target"]
 
   labels = {
     environment = "${lower(terraform.workspace)}"
@@ -121,14 +121,14 @@ resource "google_compute_instance_template" "k8s_worker_node_tmplate" {
   }
 
   network_interface {
-    network    = var.network_name
-    subnetwork = var.network_subnet_private_name
+    network    = var.network_self_link
+    subnetwork = var.network_subnet_private_self_link
     # subnetwork_project = var.project_id
     # network_ip         = var.network_address_range
-    access_config {} # for external IP
+    # access_config {} # for external IP
   }
 
-  tags = ["env-${lower(terraform.workspace)}", "k8s-cluster", "k8s-worker-node", "consul-agent"]
+  tags = ["env-${lower(terraform.workspace)}", "k8s-cluster", "k8s-worker-node", "consul-agent", "iap-ssh-target"]
 
   labels = {
     environment = "${lower(terraform.workspace)}"

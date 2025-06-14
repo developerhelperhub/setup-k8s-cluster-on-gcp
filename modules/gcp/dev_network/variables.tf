@@ -10,6 +10,11 @@ variable "project_name" {
 }
 
 # --------------------- GCP Project and Regsion Configuration ---------------------
+variable "gcp_project_id" {
+  description = "GCP project id"
+  type        = string
+}
+
 variable "gcp_region" {
   description = "GCP region to deploy to"
   type        = string
@@ -20,18 +25,19 @@ variable "gcp_zone" {
   type        = string
 }
 
-#--------------------- Network Configuration ---------------------
-variable "nw_network_name" {
-  description = "Network name of application"
+#--------------------- Dev Network Configuration ---------------------
+
+variable "dev_subnet_public_address_range" {
+  description = "Network address ranges of public subnet of development vpc to assosiate for vms"
   type        = string
 }
 
-variable "nw_subnet_public_address_range" {
-  description = "Network address ranges of public subnet to assosiate for vms"
+variable "dev_app_subnet_private_address_range" {
+  description = "Network address ranges of private subnet of development vpc to assosiate for vms application"
   type        = string
 }
 
-variable "nw_subnet_private_address_range" {
-  description = "Network address ranges of private subnet to assosiate for vms"
+variable "dev_db_subnet_private_address_range" {
+  description = "Network address ranges of private subnet of development vpc to assosiate for vms database"
   type        = string
 }

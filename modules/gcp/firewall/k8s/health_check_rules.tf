@@ -1,6 +1,6 @@
 resource "google_compute_firewall" "k8s_incoming_from_from_gcp_helath_service" {
   name    = "${lower(var.project_id)}-${lower(terraform.workspace)}-k8s-incoming-from-gcp-helath-service"
-  network = var.network_name
+  network = var.network_self_link
 
   allow {
     protocol = "tcp"

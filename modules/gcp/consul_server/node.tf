@@ -24,12 +24,12 @@ resource "google_compute_instance" "consul_server_vm" {
   }
 
   network_interface {
-    network    = var.network_name
-    subnetwork = var.network_subnet_private_name
-    access_config {} # for external IP
+    network    = var.network_self_link
+    subnetwork = var.network_subnet_private_self_link
+    # access_config {} # for external IP
   }
 
-  tags = ["env-${lower(terraform.workspace)}", "consul-server"]
+  tags = ["env-${lower(terraform.workspace)}", "consul-server", "iap-ssh-target"]
 
   labels = {
     environment = "${lower(terraform.workspace)}"

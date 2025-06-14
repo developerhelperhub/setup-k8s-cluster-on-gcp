@@ -4,7 +4,7 @@
 # Allow HAProxy to Talk to Backend (Private Subnet)
 resource "google_compute_firewall" "k8s_incoming_from_haproxy_lb_allow" {
   name    = "${lower(var.project_id)}-${lower(terraform.workspace)}-k8s-incoming-from-haproxy-lb"
-  network = var.network_name
+  network = var.network_self_link
 
   direction = "INGRESS"
   priority  = 1000
@@ -25,7 +25,7 @@ resource "google_compute_firewall" "k8s_incoming_from_haproxy_lb_allow" {
 # Allow Backend VMs to Accept Traffic Only from HAProxy
 resource "google_compute_firewall" "k8s_outgoing_to_haproxy_lb_allow" {
   name    = "${lower(var.project_id)}-${lower(terraform.workspace)}-k8s-outgoing-to-haproxy-lb-allow"
-  network = var.network_name
+  network = var.network_self_link
 
   direction = "EGRESS"
   priority  = 1000

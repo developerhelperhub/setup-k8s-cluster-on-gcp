@@ -1,3 +1,9 @@
+
+variable "terrafor_impersonate_service_account" {
+  description = "Impersonate the Terraform service account when running Terraform"
+  type        = string
+}
+
 #--------------------- Development Project Configuration ---------------------
 variable "project_id" {
   description = "Id of the development project"
@@ -31,29 +37,34 @@ variable "gcp_helath_check_ip_ranges" {
 }
 
 
-#--------------------- Network Configuration ---------------------
-variable "nw_network_name" {
-  description = "Network name of application"
-  type        = string
-}
-
-variable "nw_subnet_public_address_range" {
-  description = "Network address ranges of public subnet to assosiate for vms"
-  type        = string
-}
-
-variable "nw_subnet_private_address_range" {
-  description = "Network address ranges of private subnet to assosiate for vms"
-  type        = string
-}
-
-
 #--------------------- Secure Bucket ---------------------
 variable "secure_bucket_unique_name_prefix" {
   description = "Unique prefix name of secure bucket to make unique globaly"
   type        = string
 }
 
+#--------------------- Dev Network Configuration ---------------------
+variable "dev_subnet_public_address_range" {
+  description = "Network address ranges of public subnet of development vpc to assosiate for vms"
+  type        = string
+}
+
+variable "dev_app_subnet_private_address_range" {
+  description = "Network address ranges of private subnet of development vpc to assosiate for vms application"
+  type        = string
+}
+
+variable "dev_db_subnet_private_address_range" {
+  description = "Network address ranges of private subnet of development vpc to assosiate for vms database"
+  type        = string
+}
+
+
+# --------------------- IAP TPC Forwording Configuration ---------------------
+variable "iap_tcp_forwarding_allow_ip_ranges" {
+  description = "IAP allow IP ranges which can connect to internal VMs"
+  type        = string
+}
 
 # --------------------- Consul Server Instance Configuration ---------------------
 # vm configuration

@@ -1,7 +1,7 @@
 # Firewall rule to allow HTTP traffic on port 80
 resource "google_compute_firewall" "haproxy_lb_allow_http" {
   name    = "${lower(var.project_id)}-${lower(terraform.workspace)}-haproxy-lb-allow-http"
-  network = var.network_name
+  network = var.network_self_link
 
   allow {
     protocol = "tcp"
