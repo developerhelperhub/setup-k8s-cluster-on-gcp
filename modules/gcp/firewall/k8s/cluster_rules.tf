@@ -4,7 +4,7 @@
 # Allow Master Node to Talk to Worker Node (Private Subnet)
 resource "google_compute_firewall" "k8s_wroker_incoming_from_k8s_master_allow" {
   name    = "${lower(var.project_id)}-${lower(terraform.workspace)}-k8s-wroker-incoming-from-k8s-master"
-  network = var.network_name
+  network = var.network_self_link
 
   direction = "INGRESS"
   priority  = 1000
@@ -31,7 +31,7 @@ resource "google_compute_firewall" "k8s_wroker_incoming_from_k8s_master_allow" {
 
 resource "google_compute_firewall" "k8s_wroker_egress_to_k8s_master_allow" {
   name    = "${lower(var.project_id)}-${lower(terraform.workspace)}-k8s-wroker-egress-to-k8s-master"
-  network = var.network_name
+  network = var.network_self_link
 
   direction = "EGRESS"
   priority  = 1000

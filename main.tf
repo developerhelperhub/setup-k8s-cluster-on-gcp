@@ -1,6 +1,8 @@
 module "gcp" {
   source = "./modules/gcp"
 
+  terrafor_impersonate_service_account = var.terrafor_impersonate_service_account
+
   project_id   = var.project_id
   project_name = var.project_name
 
@@ -9,11 +11,13 @@ module "gcp" {
   gcp_zone                   = var.gcp_zone
   gcp_helath_check_ip_ranges = var.gcp_helath_check_ip_ranges
 
-  nw_network_name                 = var.nw_network_name
-  nw_subnet_public_address_range  = var.nw_subnet_public_address_range
-  nw_subnet_private_address_range = var.nw_subnet_private_address_range
+  dev_subnet_public_address_range      = var.dev_subnet_public_address_range
+  dev_app_subnet_private_address_range = var.dev_app_subnet_private_address_range
+  dev_db_subnet_private_address_range  = var.dev_db_subnet_private_address_range
 
   secure_bucket_unique_name_prefix = var.secure_bucket_unique_name_prefix
+
+  iap_tcp_forwarding_allow_ip_ranges = var.iap_tcp_forwarding_allow_ip_ranges
 
   consule_server_vm_instance_type = var.consule_server_vm_instance_type
   consule_server_vm_os_image      = var.consule_server_vm_os_image
@@ -60,3 +64,4 @@ module "app" {
   depends_on = [module.gcp]
 
 }
+

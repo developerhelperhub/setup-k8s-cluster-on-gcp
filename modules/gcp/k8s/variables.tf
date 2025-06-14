@@ -19,8 +19,13 @@ variable "project_id" {
 }
 
 #--------------------- Network Configuration ---------------------
-variable "network_name" {
-  description = "Network name of application"
+variable "network_self_link" {
+  description = "self link of network of application"
+  type        = string
+}
+
+variable "network_subnet_private_self_link" {
+  description = "Self link of subnet private"
   type        = string
 }
 
@@ -29,16 +34,13 @@ variable "network_subnet_private_address_range" {
   type        = string
 }
 
-variable "network_subnet_private_name" {
-  description = "Network subnet private name"
-  type        = string
-}
-
+#--------------------- Secure bucket Configuration ---------------------
 variable "secure_bucket_name" {
   description = "The bucket name where store the information securly"
   type        = string
 }
 
+#--------------------- Master instance Configuration ---------------------
 # master vm configuration
 variable "master_instance_type" {
   description = "Instance type of master k8s to install to"
@@ -62,6 +64,7 @@ variable "master_os_disk_type" {
 }
 
 
+#--------------------- Worker instance Configuration ---------------------
 # node vm configuration
 variable "node_instance_type" {
   description = "Instance type of node k8s to install to"

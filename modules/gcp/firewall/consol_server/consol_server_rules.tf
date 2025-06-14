@@ -1,7 +1,7 @@
 # Firewall rule to allow HTTP traffic on port 80
 resource "google_compute_firewall" "consol_node_incoming_from_consol_server_allow" {
   name    = "${lower(var.project_id)}-${lower(terraform.workspace)}-consol-incoming-from-consol-server"
-  network = var.network_name
+  network = var.network_self_link
 
   allow {
     protocol = "tcp"
@@ -16,13 +16,13 @@ resource "google_compute_firewall" "consol_node_incoming_from_consol_server_allo
   source_tags = ["consul-server", "consul-agent"]
   target_tags = ["consul-server", "consul-agent"]
 
-  source_ranges = [var.network_subnet_private_address_range, var.network_subnet_public_address_range]
+  source_ranges = [var.subnet_public_address_range, var.app_subnet_private_address_range]
 }
 
 # Firewall rule to allow HTTP traffic on port 80
 resource "google_compute_firewall" "consol_node_outgoing_to_consol_server_allow" {
   name    = "${lower(var.project_id)}-${lower(terraform.workspace)}-consol-outgoing-to-consol-server"
-  network = var.network_name
+  network = var.network_self_link
 
   allow {
     protocol = "tcp"
@@ -37,5 +37,5 @@ resource "google_compute_firewall" "consol_node_outgoing_to_consol_server_allow"
   source_tags = ["consul-server", "consul-agent"]
   target_tags = ["consul-server", "consul-agent"]
 
-  source_ranges = [var.network_subnet_private_address_range, var.network_subnet_public_address_range]
+  source_ranges = [var.subnet_public_address_range, var.app_subnet_private_address_range]
 }

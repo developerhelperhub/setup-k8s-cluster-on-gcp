@@ -12,17 +12,17 @@ variable "gcp_zone" {
 }
 
 #--------------------- Network Configuration ---------------------
-variable "network_name" {
-  description = "Network name of application"
+variable "network_self_link" {
+  description = "self link of network of application"
   type        = string
 }
 
-variable "network_subnet_private_address_range" {
-  description = "Subnet private address ranges to assosiate for vms"
+variable "subnet_public_address_range" {
+  description = "Network address ranges of public subnet of vpc to assosiate for vms"
   type        = string
 }
 
-variable "network_subnet_public_address_range" {
-  description = "Subnet publi address ranges to assosiate for vms"
+variable "app_subnet_private_address_range" {
+  description = "Network address ranges of private subnet of vpc to assosiate for vms application"
   type        = string
 }

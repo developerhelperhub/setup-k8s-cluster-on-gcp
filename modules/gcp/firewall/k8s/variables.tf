@@ -14,8 +14,8 @@ variable "gcp_helath_check_ip_ranges" {
 }
 
 # #--------------------- Network Configuration ---------------------
-variable "network_name" {
-  description = "Network name of application"
+variable "network_self_link" {
+  description = "self link of network of application"
   type        = string
 }
 
